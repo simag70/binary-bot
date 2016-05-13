@@ -1,3 +1,5 @@
 *.swp
+npm-debug.log
+.publish
 bower_components/
 node_modules/
