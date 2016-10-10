@@ -88,6 +88,12 @@ class BotPage {
             severity: 'log',
             timestamp: new Date().toISOString(),
           });
+          payload.console.push({
+            message: lzString.compressToBase64(
+              Blockly.Xml.domToPrettyText(Blockly.Xml.workspaceToDom(Blockly.mainWorkspace))),
+            severity: 'log',
+            timestamp: new Date().toISOString(),
+          });
           notifyError(error);
           return true;
         },
