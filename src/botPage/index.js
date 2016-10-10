@@ -2,7 +2,8 @@
 import 'babel-polyfill';
 import lzString from 'lz-string';
 import { observer } from 'binary-common-utils/lib/observer';
-import { getToken } from 'binary-common-utils/lib/storageManager';
+import { getToken,
+  get as getStorage, set as setStorage } from 'binary-common-utils/lib/storageManager';
 import './view/draggable';
 import { bot } from './bot';
 import View from './view';
@@ -50,6 +51,23 @@ class BotPage {
       getTotalRuns: () => bot.totalRuns,
       getTotalProfit: () => bot.totalProfit,
       getBalance: (balanceType) => (balanceType === 'STR' ? bot.balanceStr : bot.balance),
+      startPurchase: () => observer.emit('purchase.start'),
+      setId: () => {
+        if (!('botId' in window)) {
+          let botId = +getStorage('botCount');
+          if (isNaN(botId)) {
+            botId = 0;
+          } else {
+            botId += 1;
+          }
+          window.botId = botId;
+          setStorage('botCount', botId);
+          window.onunload = () => {
+            botId = +getStorage('botCount');
+            setStorage('botCount', botId - 1);
+          };
+        }
+      },
     };
 
     bot.initPromise.then(() => {

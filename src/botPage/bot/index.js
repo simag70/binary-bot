@@ -49,13 +49,15 @@ export default class Bot {
     this.symbol = new _Symbol(this.api);
     this.initPromise = this.symbol.initPromise;
   }
-  start(token, tradeOption, beforePurchase, duringPurchase, afterPurchase, sameTrade) {
+  start(token, tradeOption, beforePurchase, duringPurchase, afterPurchase,
+    sameTrade = false, waitForTradePurchase = false) {
     if (!this.running || sameTrade) {
       this.running = true;
       if (this.purchaseCtrl) {
         this.purchaseCtrl.destroy();
       }
-      this.purchaseCtrl = new PurchaseCtrl(this.api, beforePurchase, duringPurchase, afterPurchase);
+      this.purchaseCtrl = new PurchaseCtrl(
+        this.api, beforePurchase, duringPurchase, afterPurchase, waitForTradePurchase);
       this.tradeOption = tradeOption;
       observer.emit('log.bot.start', {
         again: !!sameTrade,

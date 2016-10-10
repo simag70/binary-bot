@@ -6,6 +6,7 @@ import markets from './markets';
 import { bot } from '../../../../bot';
 import config from '../../../../../common/const';
 import tradeTypes from './tradeTypes';
+import './sync';
 import { setBlockTextColor, findTopParentBlock, deleteBlockIfExists } from '../../utils';
 
 const backwardCompatibility = (block) => {
@@ -75,13 +76,15 @@ Blockly.JavaScript.trade = (block) => {
   // TODO: Assemble JavaScript into code variable.
   const code = `
   var tradeOption = {};
+  var sync = false;
   ${initialization.trim()};
   function trade(again){
     Bot.start('${account.trim()}', tradeOption,
     typeof before_purchase === 'undefined' ? function(){} : before_purchase,
     typeof during_purchase === 'undefined' ? function(){} : during_purchase,
     typeof after_purchase === 'undefined' ? function(){} : after_purchase,
-    again);
+    again,
+    sync);
   }`;
   return code;
 };

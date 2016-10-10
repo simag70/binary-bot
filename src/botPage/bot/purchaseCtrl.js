@@ -19,11 +19,12 @@ const createDetails = (contract) => {
 };
 
 export default class PurchaseCtrl {
-  constructor(api, beforePurchase, duringPurchase, afterPurchase) {
+  constructor(api, beforePurchase, duringPurchase, afterPurchase, waitBeforePurchase = false) {
     this.api = api;
     this.beforePurchase = beforePurchase;
     this.duringPurchase = duringPurchase;
     this.afterPurchase = afterPurchase;
+    this.waitBeforePurchase = waitBeforePurchase;
     this.ready = false;
     this.purchased = false;
     this.runningObservations = [];
@@ -97,7 +98,11 @@ export default class PurchaseCtrl {
       observer.register('trade.finish', tradeFinish, true);
       this.runningObservations.push(['trade.update', tradeUpdate]);
       this.runningObservations.push(['trade.finish', tradeFinish]);
-      this.trade.purchase(contract, tradeFinish);
+      if (this.waitBeforePurchase) {
+        observer.register('purchase.start', () => this.trade.purchase(contract, tradeFinish), true);
+      } else {
+        this.trade.purchase(contract, tradeFinish);
+      }
     }
   }
   isSellAvailable() {
