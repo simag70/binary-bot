@@ -1,7 +1,8 @@
 import { observer } from 'binary-common-utils/lib/observer';
 import { translator } from '../../../common/translator';
 import { bot } from '../../bot';
-import { addPurchaseOptions, isMainBlock, save, getMainBlocks } from './utils';
+import { addPurchaseOptions, isMainBlock, save, getMainBlocks,
+  disable } from './utils';
 import blocks from './blocks';
 
 const backwardCompatibility = (block) => {
@@ -22,6 +23,19 @@ const backwardCompatibility = (block) => {
 const setMainBlocksDeletable = () => {
   for (const block of getMainBlocks()) {
     block.setDeletable(true);
+  }
+};
+
+const disableStrayBlocks = () => {
+  const topBlocks = Blockly.mainWorkspace.getTopBlocks();
+  for (const block of topBlocks) {
+    if (!isMainBlock(block.type)
+      && block.type.indexOf('procedures_def') < 0
+      && block.type !== 'block_holder'
+      && !block.disabled) {
+        disable(block,
+          translator.translateText('Blocks must be inside block holders, main blocks or functions')); // eslint-disable-line max-len
+      }
   }
 };
 
@@ -140,6 +154,10 @@ export default class _Blockly {
     }
     Blockly.Xml.domToBlock(blockXml, Blockly.mainWorkspace);
   }
+  resetWorkspace() {
+    Blockly.mainWorkspace.clear();
+    Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(this.blocksXmlStr), Blockly.mainWorkspace);
+  }
   loadWorkspace(xml) {
     Blockly.mainWorkspace.clear();
     for (const block of xml.children) {
@@ -202,8 +220,7 @@ export default class _Blockly {
       window.LoopTrap = 99999999999;
       Blockly.JavaScript
         .INFINITE_LOOP_TRAP = 'if (--window.LoopTrap == 0) throw "Infinite loop.";\n';
-      this.blocksXmlStr = Blockly.Xml.domToPrettyText(
-        Blockly.Xml.workspaceToDom(Blockly.mainWorkspace));
+      disableStrayBlocks();
       code = `
         ${Blockly.JavaScript.workspaceToCode(Blockly.mainWorkspace)}
         try {
