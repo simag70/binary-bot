@@ -42,6 +42,8 @@ export default class Bot {
     this.unregisterOnFinish = [];
     this.totalProfit = 0;
     this.totalRuns = 0;
+    this.totalWins = 0;
+    this.totalLosses = 0;
     this.totalStake = 0;
     this.totalPayout = 0;
     this.balance = 0;
@@ -80,9 +82,12 @@ export default class Bot {
         }
         if (!_.isEmpty(this.tradeOption)) {
           if (this.tradeOption.symbol !== this.currentSymbol) {
+            observer.unregisterAll('api.ohlc');
+            observer.unregisterAll('api.tick');
             promises.push(this.subscribeToTickHistory());
             promises.push(this.subscribeToCandles());
           } else if (this.tradeOption.candleInterval !== this.candleInterval) {
+            observer.unregisterAll('api.ohlc');
             this.candleInterval = this.tradeOption.candleInterval;
             promises.push(this.subscribeToCandles());
           }
@@ -150,6 +155,7 @@ export default class Bot {
   subscribeToCandles() {
     return new Promise((resolve) => {
       const apiCandles = (candles) => {
+        this.observeOhlc();
         this.candles = candles;
         resolve();
       };
@@ -170,6 +176,7 @@ export default class Bot {
   subscribeToTickHistory() {
     return new Promise((resolve) => {
       const apiHistory = (history) => {
+        this.observeTicks();
         this.currentSymbol = this.tradeOption.symbol;
         this.ticks = history;
         resolve();
@@ -304,12 +311,19 @@ export default class Bot {
       contract,
     });
 
+    if (+profit > 0) {
+      this.totalWins += 1;
+    } else if (+profit < 0) {
+      this.totalLosses += 1;
+    }
     this.totalProfit = +(this.totalProfit + profit).toFixed(2);
     this.totalStake = +(this.totalStake + Number(contract.buy_price)).toFixed(2);
     this.totalPayout = +(this.totalPayout + Number(contract.sell_price)).toFixed(2);
 
     observer.emit('bot.tradeInfo', {
       totalProfit: this.totalProfit,
+      totalWins: this.totalWins,
+      totalLosses: this.totalLosses,
       totalStake: this.totalStake,
       totalPayout: this.totalPayout,
     });

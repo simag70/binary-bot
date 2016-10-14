@@ -15,7 +15,7 @@ import { logHandler } from './logger';
 
 export default class View {
   constructor() {
-    this.chartType = 'area';
+    this.chartType = 'line';
     this.tours = {};
     logHandler();
     this.tradeInfo = new TradeInfo();
@@ -222,6 +222,21 @@ export default class View {
         this.blockly.redo();
       });
 
+    $('#zoomIn')
+      .click(() => {
+        this.blockly.zoomOnPlusMinus(true);
+      });
+
+    $('#zoomOut')
+      .click(() => {
+        this.blockly.zoomOnPlusMinus(false);
+      });
+
+    $('#cleanUp')
+      .click(() => {
+        this.blockly.cleanUp();
+      });
+
     $('#showSummary')
       .click(() => {
         $('#summaryPanel')
@@ -324,7 +339,6 @@ export default class View {
                 ticks={info[chartToDataType[this.chartType]]}
                 type={this.chartType}
                 events={events}
-                compactToolbar
                 onTypeChange={(type) => (this.chartType = type)}
             />, $('#chart')[0]);
   }
